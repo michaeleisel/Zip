@@ -96,7 +96,7 @@ public class Zip {
      - notes: Supports implicit progress composition
      */
     
-    public class func unzipFile(_ zipFilePath: URL, destination: URL, overwrite: Bool, password: String?, progress: ((_ progress: Double) -> ())? = nil, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
+  public class func unzipFile(_ zipFilePath: URL, destination: URL, overwrite: Bool, password: String?, permissions: UInt?, progress: ((_ progress: Double) -> ())? = nil, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
         
         // File manager
         let fileManager = FileManager.default
@@ -231,8 +231,14 @@ public class Zip {
                 throw ZipError.unzipFail
             }
 
-            //Set file permissions from current fileInfo
-            if fileInfo.external_fa != 0 {
+            if let overwritePermissions = permissions {
+                do {
+                    try fileManager.setAttributes([.posixPermissions : overwritePermissions], ofItemAtPath: fullPath)
+                } catch {
+                    print("Failed to set permissions to file \(fullPath), error: \(error)")
+                }
+            } else if fileInfo.external_fa != 0 {
+                //Set file permissions from current fileInfo
                 let permissions = (fileInfo.external_fa >> 16) & 0x1FF
                 //We will devifne a valid permission range between Owner read only to full access
                 if permissions >= 0o400 && permissions <= 0o777 {
