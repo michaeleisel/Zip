@@ -382,7 +382,7 @@ public class Zip {
                 progressTracker.completedUnitCount = Int64(currentPosition)
                 
                 zipCloseFileInZip(zip)
-                free(buffer)
+                free(buffer!)
                 fclose(input)
             }
         }
